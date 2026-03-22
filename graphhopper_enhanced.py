@@ -58,8 +58,7 @@ def geocoding(location, key):
     return json_status, lat, lng, new_loc
 
 
-<<<<<<< Updated upstream
-=======
+
 #  Alenton FEATURE: Multi-Stop Trip Planner 
 def multi_stop_trip(key, vehicle):
     stops = []
@@ -81,7 +80,7 @@ def multi_stop_trip(key, vehicle):
         print(f"\n--- Leg {i+1}: {stops[i][3]} to {stops[i+1][3]} ---")
 
 
->>>>>>> Stashed changes
+
 while True:
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
     print("Vehicle profiles available on Graphhopper:")
@@ -91,6 +90,8 @@ while True:
 
     profile = ["car", "bike", "foot"]
     vehicle = input("Enter a vehicle profile from the list above: ")
+    
+        
 
     if vehicle == "quit" or vehicle == "q":
         break
@@ -99,15 +100,14 @@ while True:
     else:
         vehicle = "car"
         print("No valid vehicle profile was entered. Using the car profile.")
-<<<<<<< Updated upstream
-=======
+
 
     
     mode = input("Normal trip (n) or Multi-stop (m)? ").strip().lower()
     if mode == 'm':
         multi_stop_trip(key, vehicle)
         continue
->>>>>>> Stashed changes
+
 
     loc1 = input("Starting Location: ")
     if loc1 == "quit" or loc1 == "q":
@@ -154,3 +154,5 @@ while True:
         else:
             print("Error message: " + paths_data["message"])
             print("*************************************************")
+            
+            
