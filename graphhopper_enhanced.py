@@ -1,4 +1,3 @@
-
 # Team Name   : Bisaya Bytes
 # Members     : RJ Alenton, Eduard Philippe Tojong, Alshier Ahmad, Johnb Benedict Canon
 # Subject     : SYSARCH32 - LABWORKS 4.9.3
@@ -10,7 +9,7 @@ import requests
 import urllib.parse
 
 route_url = "https://graphhopper.com/api/1/route?"
-key = "5e387e03-6111-4cff-9033-31db3ede05a5"  
+key = "5e387e03-6111-4cff-9033-31db3ede05a5"
 
 def geocoding(location, key):
     while location == "":
@@ -59,6 +58,30 @@ def geocoding(location, key):
     return json_status, lat, lng, new_loc
 
 
+<<<<<<< Updated upstream
+=======
+#  Alenton FEATURE: Multi-Stop Trip Planner 
+def multi_stop_trip(key, vehicle):
+    stops = []
+    print("\n=== MULTI-STOP TRIP PLANNER ===")
+    print("Enter locations one by one. Type 'done' when finished.")
+    while True:
+        loc = input(f"Enter Stop {len(stops)+1} (or 'done'): ")
+        if loc.lower() == 'done':
+            if len(stops) < 2:
+                print("Need at least 2 stops!")
+                continue
+            break
+        r = geocoding(loc, key)
+        if r[0] == 200:
+            stops.append(r)
+            print(f"  Added: {r[3]}")
+    print("\nFull Route: " + " -> ".join([s[3] for s in stops]))
+    for i in range(len(stops) - 1):
+        print(f"\n--- Leg {i+1}: {stops[i][3]} to {stops[i+1][3]} ---")
+
+
+>>>>>>> Stashed changes
 while True:
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
     print("Vehicle profiles available on Graphhopper:")
@@ -76,6 +99,15 @@ while True:
     else:
         vehicle = "car"
         print("No valid vehicle profile was entered. Using the car profile.")
+<<<<<<< Updated upstream
+=======
+
+    
+    mode = input("Normal trip (n) or Multi-stop (m)? ").strip().lower()
+    if mode == 'm':
+        multi_stop_trip(key, vehicle)
+        continue
+>>>>>>> Stashed changes
 
     loc1 = input("Starting Location: ")
     if loc1 == "quit" or loc1 == "q":
