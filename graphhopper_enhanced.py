@@ -1,14 +1,16 @@
+# ============================================================
 # Team Name   : Bisaya Bytes
 # Members     : RJ Alenton, Eduard Philippe Tojong, Alshier Ahmad, Johnb Benedict Canon
 # Subject     : SYSARCH32 - LABWORKS 4.9.3
 # Base Code   : Lab 4.9.2 - Graphhopper Directions Application
 # Feature     : Enhanced application with Multi-Stop, Location History & Favorites
-
+# ============================================================
 
 import requests
 import urllib.parse
 import json
 import os
+from datetime import datetime
 
 route_url = "https://graphhopper.com/api/1/route?"
 key = "5e387e03-6111-4cff-9033-31db3ede05a5"
@@ -30,7 +32,7 @@ def add_to_history(location_name):
     data = load_history()
     if location_name not in data["history"]:
         data["history"].insert(0, location_name)
-        data["history"] = data["history"][:10]  # keep last 10
+        data["history"] = data["history"][:10]
     save_history(data)
 
 def show_saved_locations():
@@ -71,6 +73,33 @@ def pick_from_saved():
         if 0 <= idx < len(all_locs):
             return all_locs[idx]
     return None
+# ───────────────────────────────────────────────────────────────────────────
+
+
+# ── RJ Alenton's Feature: Trip Summary Report ───────────────────────────────
+SUMMARY_FILE = "trip_summary.txt"
+
+def print_summary(origin, destination, vehicle, miles, km, hr, min, sec):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = "=" * 55
+
+    summary = f"""
+{line}
+           BISAYA BYTES - TRIP SUMMARY REPORT
+{line}
+  Date & Time  : {timestamp}
+  Vehicle      : {vehicle.upper()}
+  From         : {origin}
+  To           : {destination}
+  Distance     : {miles:.1f} miles  /  {km:.1f} km
+  Duration     : {hr:02d}:{min:02d}:{sec:02d}
+{line}
+"""
+    print(summary)
+
+    with open(SUMMARY_FILE, "a") as f:
+        f.write(summary)
+    print(f"  [Trip summary saved to {SUMMARY_FILE}]")
 # ───────────────────────────────────────────────────────────────────────────
 
 
@@ -120,13 +149,6 @@ def geocoding(location, key):
 
     return json_status, lat, lng, new_loc
 
-# ---- EDUARD'S FEATURE: Trip Logging ----
-def log_trip(origin, destination, vehicle, km, duration):
-    import datetime
-    ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    with open('trip_log.txt', 'a') as f:
-        f.write(f"[{ts}] {origin} -> {destination} | {vehicle} | {km:.1f}km | {duration}\n")
-    print("  [Trip saved to trip_log.txt]")
 
 # ── RJ's Feature: Multi-Stop Trip Planner ──────────────────────────────────
 def multi_stop_trip(key, vehicle):
@@ -139,7 +161,7 @@ def multi_stop_trip(key, vehicle):
             loc = saved
             print(f"  Using saved location: {loc}")
         else:
-            loc = input(f"Enter Stop {len(stops)+1} (or 'done'): ")
+            loc = input(f"Enter Stop {len(stops)+1} (or 'done'): ").strip()
         if loc.lower() == 'done':
             if len(stops) < 2:
                 print("Need at least 2 stops!")
@@ -153,41 +175,38 @@ def multi_stop_trip(key, vehicle):
             fav = input("  Add to favorites? (y/n): ").strip().lower()
             if fav == 'y':
                 add_to_favorites(r[3])
+
     print("\nFull Route: " + " -> ".join([s[3] for s in stops]))
+
+    total_miles = 0
+    total_km = 0
+    total_sec_all = 0
+
     for i in range(len(stops) - 1):
         print(f"\n--- Leg {i+1}: {stops[i][3]} to {stops[i+1][3]} ---")
+        op = "&point=" + str(stops[i][1]) + "%2C" + str(stops[i][2])
+        dp = "&point=" + str(stops[i+1][1]) + "%2C" + str(stops[i+1][2])
+        paths_url = route_url + urllib.parse.urlencode({"key": key, "vehicle": vehicle}) + op + dp
+        paths_data = requests.get(paths_url).json()
+        paths_status = requests.get(paths_url).status_code
+
+        if paths_status == 200:
+            miles = paths_data["paths"][0]["distance"] / 1000 / 1.61
+            km = paths_data["paths"][0]["distance"] / 1000
+            total_sec = int(paths_data["paths"][0]["time"] / 1000)
+            total_miles += miles
+            total_km += km
+            total_sec_all += total_sec
+            print(f"  Distance: {miles:.1f} mi / {km:.1f} km")
+
+    hr = total_sec_all // 3600
+    min = (total_sec_all % 3600) // 60
+    sec = total_sec_all % 60
+    print_summary(stops[0][3], stops[-1][3], vehicle, total_miles, total_km, hr, min, sec)
 # ───────────────────────────────────────────────────────────────────────────
 
 
-
-#  Alenton FEATURE: Multi-Stop Trip Planner 
-def multi_stop_trip(key, vehicle):
-    stops = []
-    print("\n=== MULTI-STOP TRIP PLANNER ===")
-    print("Enter locations one by one. Type 'done' when finished.")
-    while True:
-        loc = input(f"Enter Stop {len(stops)+1} (or 'done'): ")
-        if loc.lower() == 'done':
-            if len(stops) < 2:
-                print("Need at least 2 stops!")
-                continue
-            break
-        r = geocoding(loc, key)
-        if r[0] == 200:
-            stops.append(r)
-            print(f"  Added: {r[3]}")
-    print("\nFull Route: " + " -> ".join([s[3] for s in stops]))
-    for i in range(len(stops) - 1):
-        print(f"\n--- Leg {i+1}: {stops[i][3]} to {stops[i+1][3]} ---")
-
-
-
 while True:
-
-    # ---- CANON'S FEATURE: Unit Toggle ----
-    unit = input("Units — (1) Miles first  (2) KM first  [press Enter for Miles]: ").strip()
-    use_miles = (unit != '2')
-
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
     print("Vehicle profiles available on Graphhopper:")
     print("+++++++++++++++++++++++++++++++++++++++++++++")
@@ -196,8 +215,6 @@ while True:
 
     profile = ["car", "bike", "foot"]
     vehicle = input("Enter a vehicle profile from the list above: ")
-    
-        
 
     if vehicle == "quit" or vehicle == "q":
         break
@@ -212,33 +229,19 @@ while True:
         multi_stop_trip(key, vehicle)
         continue
 
-    # ── Ahmad's Feature: offer saved locations for normal trip ──
     print("\nStarting Location:")
     saved = pick_from_saved()
-    if saved:
-        loc1 = saved
-        print(f"  Using saved location: {loc1}")
-    else:
-        loc1 = input("Starting Location: ")
-    # ────────────────────────────────────────────────────────────
-
-    if loc1 == "quit" or loc1 == "q":
+    loc1 = saved if saved else input("Starting Location: ")
+    if loc1 in ("quit", "q"):
         break
     orig = geocoding(loc1, key)
     if orig[0] == 200:
         add_to_history(orig[3])
 
-    # ── Ahmad's Feature: offer saved locations for destination ──
     print("\nDestination:")
     saved = pick_from_saved()
-    if saved:
-        loc2 = saved
-        print(f"  Using saved location: {loc2}")
-    else:
-        loc2 = input("Destination: ")
-    # ────────────────────────────────────────────────────────────
-
-    if loc2 == "quit" or loc2 == "q":
+    loc2 = saved if saved else input("Destination: ")
+    if loc2 in ("quit", "q"):
         break
     dest = geocoding(loc2, key)
     if dest[0] == 200:
@@ -265,11 +268,7 @@ while True:
             min = int(paths_data["paths"][0]["time"] / 1000 / 60 % 60)
             hr = int(paths_data["paths"][0]["time"] / 1000 / 60 / 60)
 
-            if use_miles:
-                print("Distance Traveled: {0:.1f} miles / {1:.1f} km".format(miles, km))
-            else:
-                print("Distance Traveled: {0:.1f} km / {1:.1f} miles".format(km, miles))
-                
+            print("Distance Traveled: {0:.1f} miles / {1:.1f} km".format(miles, km))
             print("Trip Duration: {0:02d}:{1:02d}:{2:02d}".format(hr, min, sec))
             print("=============================================")
 
@@ -278,12 +277,11 @@ while True:
                 distance = paths_data["paths"][0]["instructions"][each]["distance"]
                 print("{0} ( {1:.1f} km / {2:.1f} miles )".format(path, distance / 1000, distance / 1000 / 1.61))
 
-            log_trip(orig[3], dest[3], vehicle, km, '{:02d}:{:02d}:{:02d}'.format(hr, min, sec))
-
             print("=============================================")
+
+            # RJ's Feature: Print and save trip summary
+            print_summary(orig[3], dest[3], vehicle, miles, km, hr, min, sec)
 
         else:
             print("Error message: " + paths_data["message"])
             print("*************************************************")
-            
-            
