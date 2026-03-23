@@ -183,6 +183,11 @@ def multi_stop_trip(key, vehicle):
 
 
 while True:
+
+    # ---- CANON'S FEATURE: Unit Toggle ----
+    unit = input("Units — (1) Miles first  (2) KM first  [press Enter for Miles]: ").strip()
+    use_miles = (unit != '2')
+
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
     print("Vehicle profiles available on Graphhopper:")
     print("+++++++++++++++++++++++++++++++++++++++++++++")
@@ -260,7 +265,11 @@ while True:
             min = int(paths_data["paths"][0]["time"] / 1000 / 60 % 60)
             hr = int(paths_data["paths"][0]["time"] / 1000 / 60 / 60)
 
-            print("Distance Traveled: {0:.1f} miles / {1:.1f} km".format(miles, km))
+            if use_miles:
+                print("Distance Traveled: {0:.1f} miles / {1:.1f} km".format(miles, km))
+            else:
+                print("Distance Traveled: {0:.1f} km / {1:.1f} miles".format(km, miles))
+                
             print("Trip Duration: {0:02d}:{1:02d}:{2:02d}".format(hr, min, sec))
             print("=============================================")
 
