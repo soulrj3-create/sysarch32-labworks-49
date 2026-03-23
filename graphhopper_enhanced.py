@@ -1,4 +1,3 @@
-
 # Team Name   : Bisaya Bytes
 # Members     : RJ Alenton, Eduard Philippe Tojong, Alshier Ahmad, Johnb Benedict Canon
 # Subject     : SYSARCH32 - LABWORKS 4.9.3
@@ -160,6 +159,29 @@ def multi_stop_trip(key, vehicle):
 # ───────────────────────────────────────────────────────────────────────────
 
 
+
+#  Alenton FEATURE: Multi-Stop Trip Planner 
+def multi_stop_trip(key, vehicle):
+    stops = []
+    print("\n=== MULTI-STOP TRIP PLANNER ===")
+    print("Enter locations one by one. Type 'done' when finished.")
+    while True:
+        loc = input(f"Enter Stop {len(stops)+1} (or 'done'): ")
+        if loc.lower() == 'done':
+            if len(stops) < 2:
+                print("Need at least 2 stops!")
+                continue
+            break
+        r = geocoding(loc, key)
+        if r[0] == 200:
+            stops.append(r)
+            print(f"  Added: {r[3]}")
+    print("\nFull Route: " + " -> ".join([s[3] for s in stops]))
+    for i in range(len(stops) - 1):
+        print(f"\n--- Leg {i+1}: {stops[i][3]} to {stops[i+1][3]} ---")
+
+
+
 while True:
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
     print("Vehicle profiles available on Graphhopper:")
@@ -169,6 +191,8 @@ while True:
 
     profile = ["car", "bike", "foot"]
     vehicle = input("Enter a vehicle profile from the list above: ")
+    
+        
 
     if vehicle == "quit" or vehicle == "q":
         break
@@ -252,3 +276,5 @@ while True:
         else:
             print("Error message: " + paths_data["message"])
             print("*************************************************")
+            
+            
