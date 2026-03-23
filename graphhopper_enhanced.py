@@ -1,4 +1,4 @@
-
+import datetime
 # Team Name   : Bisaya Bytes
 # Members     : RJ Alenton, Eduard Philippe Tojong, Alshier Ahmad, Johnb Benedict Canon
 # Subject     : SYSARCH32 - LABWORKS 4.9.3
@@ -58,6 +58,13 @@ def geocoding(location, key):
 
     return json_status, lat, lng, new_loc
 
+# ---- EDUARD'S FEATURE: Trip Logging ----
+def log_trip(origin, destination, vehicle, km, duration):
+    import datetime
+    ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open('trip_log.txt', 'a') as f:
+        f.write(f"[{ts}] {origin} -> {destination} | {vehicle} | {km:.1f}km | {duration}\n")
+    print("  [Trip saved to trip_log.txt]")
 
 while True:
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
@@ -116,6 +123,8 @@ while True:
                 path = paths_data["paths"][0]["instructions"][each]["text"]
                 distance = paths_data["paths"][0]["instructions"][each]["distance"]
                 print("{0} ( {1:.1f} km / {2:.1f} miles )".format(path, distance / 1000, distance / 1000 / 1.61))
+
+            log_trip(orig[3], dest[3], vehicle, km, '{:02d}:{:02d}:{:02d}'.format(hr, min, sec))
 
             print("=============================================")
 
